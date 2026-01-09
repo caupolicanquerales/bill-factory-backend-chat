@@ -60,6 +60,12 @@ public class ExecutingPromptService {
 	    })
 	    .map(ConverterUtil::setDataMessage)
 	    .map(data -> ConverterUtil.setServerSentEvent(data, eventName))
+	    .doOnComplete(() -> System.out.println("AI Stream Finished. Sending completion flag..."))
+	    .concatWith(Flux.defer(() -> {
+	        DataMessage finalMsg = ConverterUtil.setDataMessage(eventName + "-COMPLETED");
+	        return Flux.just(ConverterUtil.setServerSentEvent(finalMsg, eventName));
+	    }))
+	    .doOnTerminate(() -> System.out.println("HTTP Response fully closed on server"))
 	    .onErrorResume(WebClientResponseException.class, e -> {
 	        String errorBody = e.getResponseBodyAsString();
 	        System.err.println("OpenAI 400 Error Body: {}" + e);
@@ -91,4 +97,5 @@ public class ExecutingPromptService {
 		})
 		.subscribeOn(Schedulers.boundedElastic());
 	}
+	
 }
