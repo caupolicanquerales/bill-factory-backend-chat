@@ -22,13 +22,17 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class MessageToChatClientService {
-	
-	
+	private final FilePartConverterService filePartConverter;
+
+	public MessageToChatClientService(FilePartConverterService filePartConverter) {
+		this.filePartConverter = filePartConverter;
+	}
+
 	public Mono<List<Message>> buildMessage(String prompt, List<FilePart> fileParts, String ragContent) {
 		Flux<Object> contentFlux = Flux.fromIterable(fileParts)
-		        .flatMap(file -> {
+				.flatMap(file -> {
 		            MimeType mimeType = ExtensionUtils.getMapMimeType(file.filename());
-		            Mono<byte[]> contentMono = getByteArray(file);
+					Mono<byte[]> contentMono = filePartConverter.toByteArray(file);
 		            if (Objects.nonNull(mimeType) && mimeType.getType().equals("text")) {
 		                return contentMono.map(bytes -> 
 		                    "\n\n--- FILE: " + file.filename() + " (" + mimeType.getSubtype() + ") ---\n" + 
@@ -64,15 +68,7 @@ public class MessageToChatClientService {
 	        });
 	}
 	
-	private Mono<byte[]> getByteArray(FilePart file){
-		return  DataBufferUtils.join(file.content())
-	            .map(dataBuffer -> {
-	                byte[] bytes = new byte[dataBuffer.readableByteCount()];
-	                dataBuffer.read(bytes);
-	                DataBufferUtils.release(dataBuffer); 
-	                return bytes;
-	            });
-	}
+    
 	
 	private String getPromptTextRag(String ragContent) {
 		return """

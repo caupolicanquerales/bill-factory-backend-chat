@@ -8,18 +8,14 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class ConverterFilePartToStringService {
-	
-	private static final String DEFAULT_ENCODING = "UTF-8";
-	
-	public Mono<String> convertFilePartToString(FilePart filePart) {    
-        return DataBufferUtils.join(filePart.content())
-                .map(dataBuffer -> {
-                    int dataBufferLength = dataBuffer.readableByteCount();
-                    byte[] bytes = new byte[dataBufferLength];
-                    dataBuffer.read(bytes);
-                    DataBufferUtils.release(dataBuffer);
-                    return new String(bytes, java.nio.charset.Charset.forName(DEFAULT_ENCODING));
-                })
-                .defaultIfEmpty("");
+    private final FilePartConverterService converterService;
+    private static final String DEFAULT_ENCODING = "UTF-8";
+
+    public ConverterFilePartToStringService(FilePartConverterService converterService) {
+        this.converterService = converterService;
+    }
+
+    public Mono<String> convertFilePartToString(FilePart filePart) {
+        return converterService.toString(filePart, java.nio.charset.Charset.forName(DEFAULT_ENCODING));
     }
 }

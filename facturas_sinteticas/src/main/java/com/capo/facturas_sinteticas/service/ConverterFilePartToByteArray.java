@@ -8,17 +8,13 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class ConverterFilePartToByteArray {
-	
+    private final FilePartConverterService converterService;
 
-	public Mono<byte[]> convertFilePartToByteArray(FilePart filePart) {    
-        return DataBufferUtils.join(filePart.content())
-                .map(dataBuffer -> {
-                    int dataBufferLength = dataBuffer.readableByteCount();
-                    byte[] bytes = new byte[dataBufferLength];
-                    dataBuffer.read(bytes);
-                    DataBufferUtils.release(dataBuffer);
-                    return bytes;
-                })
-                .defaultIfEmpty(new byte[1]);
+    public ConverterFilePartToByteArray(FilePartConverterService converterService) {
+        this.converterService = converterService;
+    }
+
+    public Mono<byte[]> convertFilePartToByteArray(FilePart filePart) {
+        return converterService.toByteArray(filePart);
     }
 }

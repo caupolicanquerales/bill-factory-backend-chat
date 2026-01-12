@@ -16,13 +16,13 @@ public class RagService {
 	
 	private static final Logger log = LoggerFactory.getLogger(RagService.class);
 	
-	private final ConverterFilePartToStringService converter;
+	private final FilePartConverterService converter;
 	private final TokenTextSplitter textSplitter;
 	private final VectorStore vectorStore; 
 	
-	public RagService(ConverterFilePartToStringService converter, TokenTextSplitter textSplitter,
+	public RagService(FilePartConverterService converter, TokenTextSplitter textSplitter,
 			VectorStore vectorStore) {
-		this.converter=converter;
+		this.converter = converter;
 		this.textSplitter= textSplitter;
 		this.vectorStore=vectorStore;
 	}
@@ -38,7 +38,7 @@ public class RagService {
 	            log.error("FILE EMPTY: filePartMono completed as empty. Check request type (must be multipart/form-data) or file size limits.");
 	            return Mono.error(new IllegalStateException("File upload failed: FilePart is empty or missing."));
 	        }))
-		.flatMap(converter::convertFilePartToString)
+		.flatMap(converter::toString)
 		.map(text->{
 			Document document= new Document(text);
 			document.getMetadata().put("source", "automatic-embedding");
