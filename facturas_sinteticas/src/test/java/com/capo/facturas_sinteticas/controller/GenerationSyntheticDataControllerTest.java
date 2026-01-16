@@ -17,7 +17,6 @@ import com.capo.facturas_sinteticas.service.ExecutingPromptService;
 import com.capo.facturas_sinteticas.service.StoreFilesService;
 
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 public class GenerationSyntheticDataControllerTest {
 

@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("generation")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "${app.frontend.url}")
 public class GenerationSyntheticDataController {
 	
 	private final ExecutingPromptService executingPrompt;

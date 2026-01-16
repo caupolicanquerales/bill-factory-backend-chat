@@ -1,7 +1,6 @@
 package com.capo.facturas_sinteticas.service.sse;
 
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.codec.multipart.FilePart;
