@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.capo.facturas_sinteticas.request.GenerationSyntheticDataRequest;
 import com.capo.facturas_sinteticas.response.DataMessage;
 import com.capo.facturas_sinteticas.response.GenerationSyntheticDataResponse;
+import com.capo.facturas_sinteticas.service.ConverterFileService;
 import com.capo.facturas_sinteticas.service.ExecutingPromptService;
 import com.capo.facturas_sinteticas.service.StoreFilesService;
 import com.capo.facturas_sinteticas.utils.ConverterUtil;
@@ -31,17 +32,23 @@ public class GenerationSyntheticDataController {
 	
 	private final ExecutingPromptService executingPrompt;
 	private final StoreFilesService storeFiles;
+	private final ConverterFileService converterFile;
 	
 
-    public GenerationSyntheticDataController(ExecutingPromptService executingPrompt, StoreFilesService storeFiles) {
+    public GenerationSyntheticDataController(ExecutingPromptService executingPrompt, 
+    		StoreFilesService storeFiles, ConverterFileService converterFile) {
         this.executingPrompt= executingPrompt;
         this.storeFiles= storeFiles;
+        this.converterFile= converterFile;
     }
 	
 	@PostMapping("/sending-files")
 	public Mono<ResponseEntity<GenerationSyntheticDataResponse>> getFilesToChatClient(@RequestPart("files") List<FilePart> fileParts){
-		storeFiles.setFileParts(fileParts);
-		return Mono.just(new String("OK"))
+		return converterFile.convertFileToMap(fileParts)
+				.doOnNext(byteMap->{
+					storeFiles.setFileParts(byteMap);
+				})
+				.map(byteMap->"OK")
 				.map(ConverterUtil::getGenerationSyntheticDataResponse)
 				.map(ResponseEntity.ok()::body)
 				.switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));

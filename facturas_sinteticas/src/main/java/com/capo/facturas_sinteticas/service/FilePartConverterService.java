@@ -16,6 +16,7 @@ public class FilePartConverterService {
 
     public Mono<byte[]> toByteArray(FilePart filePart) {
         return DataBufferUtils.join(filePart.content())
+        		.doOnNext(db -> System.out.println("Read " + db.readableByteCount() + " bytes for " + filePart.filename()))
                 .map(dataBuffer -> {
                     int dataBufferLength = dataBuffer.readableByteCount();
                     byte[] bytes = new byte[dataBufferLength];

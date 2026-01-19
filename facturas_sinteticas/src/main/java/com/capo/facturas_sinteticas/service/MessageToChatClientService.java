@@ -3,6 +3,7 @@ package com.capo.facturas_sinteticas.service;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.ai.chat.messages.Message;
@@ -10,7 +11,6 @@ import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.content.Media;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeType;
 
@@ -21,20 +21,16 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class MessageToChatClientService {
-	private final FilePartConverterService filePartConverter;
 
-	public MessageToChatClientService(FilePartConverterService filePartConverter) {
-		this.filePartConverter = filePartConverter;
-	}
-
-	public Mono<List<Message>> buildMessage(String prompt, List<FilePart> fileParts, String ragContent) {
-		Flux<Object> contentFlux = Flux.fromIterable(fileParts)
-				.flatMap(file -> {
-		            MimeType mimeType = ExtensionUtils.getMapMimeType(file.filename());
-					Mono<byte[]> contentMono = filePartConverter.toByteArray(file);
+	
+	public Mono<List<Message>> buildMessage(String prompt, Map<String,byte[]> files, String ragContent) {
+		Flux<Object> contentFlux = Flux.fromIterable(files.entrySet())
+				.flatMap(entry -> {
+		            MimeType mimeType = ExtensionUtils.getMapMimeType(entry.getKey());
+					Mono<byte[]> contentMono = Mono.just(entry.getValue());
 		            if (Objects.nonNull(mimeType) && mimeType.getType().equals("text")) {
 		                return contentMono.map(bytes -> 
-		                    "\n\n--- FILE: " + file.filename() + " (" + mimeType.getSubtype() + ") ---\n" + 
+		                    "\n\n--- FILE: " + entry.getKey() + " (" + mimeType.getSubtype() + ") ---\n" + 
 		                    new String(bytes, StandardCharsets.UTF_8) + 
 		                    "\n--- END OF FILE ---\n"
 		                );

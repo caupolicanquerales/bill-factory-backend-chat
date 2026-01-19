@@ -1,7 +1,8 @@
 package com.capo.facturas_sinteticas.service;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -14,7 +15,6 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -45,8 +45,8 @@ public class ExecutingPromptService {
 	
 	
 	public Flux<ServerSentEvent<DataMessage>> executingPrompt(String prompt, StoreFilesService storeFiles){
-		List<FilePart> files= Optional.ofNullable(storeFiles.getFileParts()).orElse(new ArrayList<FilePart>());
-		storeFiles.setFileParts(new ArrayList<FilePart>());
+		Map<String,byte[]> files= Optional.ofNullable(storeFiles.getFileParts()).orElse(new HashMap<String,byte[]>());
+		storeFiles.setFileParts(new HashMap<String,byte[]>());
 		Mono<String> ragContentMono =getRagContent(prompt);
 		return ragContentMono.flatMapMany(ragContent -> {
 			Mono<List<Message>> messageMono = messageToChat.buildMessage(prompt, files, ragContent); 
