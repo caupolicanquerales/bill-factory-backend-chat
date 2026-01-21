@@ -35,9 +35,9 @@ public class ExecutingPromptService {
 	@Value(value="${event.name.chat}")
 	private String eventName;
 	
-	public ExecutingPromptService(ChatClient.Builder chatClientBuilder,
+	public ExecutingPromptService(ChatClient chatClient,
 			MessageToChatClientService messageToChat, VectorStore vectorStore) {
-		this.chatClient = chatClientBuilder.build();
+		this.chatClient = chatClient;
 		this.messageToChat=messageToChat;
 		this.vectorStore= vectorStore;
 	}
@@ -52,7 +52,8 @@ public class ExecutingPromptService {
 			Mono<List<Message>> messageMono = messageToChat.buildMessage(prompt, files, ragContent); 
 	        return messageMono.flatMapMany(listMessage -> {
 	            return this.chatClient.prompt()
-	                    .messages(listMessage) 
+	                    .messages(listMessage)
+	                    .advisors(a -> a.param("chat_memory_conversation_id", "user-unique-id"))
 	                    .stream()
 	                    .chatResponse()
 	                    .map(this::getTokenMessage);
